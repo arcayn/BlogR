@@ -7,4 +7,4 @@ After that simply run the command:
 ```sh
 ./blogsetup
 ```
-It currently lacks the promised plugin API and post Archiving feature. Everything else up-n-running however.
+It currently lacks the promised plugin API and post Archiving feature, and a method of installing other themes. Everything else up-n-running however.
