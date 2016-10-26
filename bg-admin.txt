@@ -313,7 +313,7 @@ else {
 $username = "DemoUser";
 $password = "$2y$10$P/TvGGodHK0RnNu4bTyx8Ovl6ui/SZBAtqLsR2IjNfHCRf4eSIl1y";
 if (password_verify($_POST["password"], $password) && $_POST["username"] == $username) {
-  $_SESSION["user"] = "SLX";
+  $_SESSION["user"] = $username;
   $_SESSION["browser"] = get_browser(null, true);
   $_SESSION["ip"] = $_SERVER["REMOTE_ADDR"];
   $_SESSION["logon"] = 1;
