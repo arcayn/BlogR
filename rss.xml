@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="rss-style.xsl" ?>
+<rss version="2.0">
+<channel>
+<title>The Blog</title>
+<link>http://www.kaeos.net/tests/blogr</link>
+<description>code</description>
+
+<item><title>Hj</title><link>http://kaeos.net/demos/blogd#Hj</link><guid isPermaLink="false">1477497609</guid><pubDate>Wed, 26 Oct 2016 17:00:09 +0100</pubDate><description>Hj</description></item><item><title>Hj</title><link>http://kaeos.net/demos/blogd#Hj</link><guid isPermaLink="false">1477497529</guid><pubDate>Wed, 26 Oct 2016 16:58:49 +0100</pubDate><description>Hj</description></item><item><title>Hj</title><link>http://kaeos.net/demos/blogd#Hj</link><guid isPermaLink="false">1477497485</guid><pubDate>Wed, 26 Oct 2016 16:58:05 +0100</pubDate><description>Hj</description></item><item><title>Hj</title><link>http://kaeos.net/demos/blogd#Hj</link><guid isPermaLink="false">1477497398</guid><pubDate>Wed, 26 Oct 2016 16:56:38 +0100</pubDate><description>Hj</description></item><item><title>New Post</title><link>http://kaeos.net/demos/blogd#New%20Post</link><guid isPermaLink="false">1477497205</guid><pubDate>Wed, 26 Oct 2016 16:53:25 +0100</pubDate><description>New Post</description></item><item><title>New Post</title><link>http://kaeos.net/demos/blogd#New%20Post</link><guid isPermaLink="false">1477497020</guid><pubDate>Wed, 26 Oct 2016 16:50:20 +0100</pubDate><description>New Post</description></item></channel>
+</rss>
+

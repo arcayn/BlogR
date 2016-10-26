@@ -1,0 +1,1 @@
+<div style="margin-top:-50px"><table class="post"><tr><th class="title" colspan="2" style="text-align: left"><h1 id="%title%">%title%</h1></th></tr><tr><tr><td class="side"><p class="date">%date%</p>%tags%</td><td class="main"><p>%content%</p></td></tr></table></div>

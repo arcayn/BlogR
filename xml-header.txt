@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="rss-style.xsl" ?>
+<rss version="2.0">
+<channel>
+<title>##bgn##</title>
+<link>http://www.##wsn####cwd##</link>
+<description>##bgt##</description>
+

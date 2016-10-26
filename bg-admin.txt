@@ -1,0 +1,325 @@
+<?php
+function makePost($title, $date, $tags, $content) {
+  $currtheme = fgets(fopen("themes/themesetup.ini", 'r'));
+  $currtheme = explode("\n", $currtheme)[0];
+  $tagM = '<p class="categories">';
+  foreach ($tags as &$tag) {
+    $tagM = $tagM.'<a href="##cwd##/categories/'.$tag.'">'.$tag.'</a> ';
+  }
+  $newposthtml = fgets(fopen("themes/".$currtheme."/newposthtml.blg", 'r'));
+  $towrite = str_replace("%title%", $title, $newposthtml);
+  $towrite = str_replace("%content%", $content, $towrite);
+  $towrite = str_replace("%tags%", $tagM, $towrite);
+  $towrite = str_replace("%date%", $date, $towrite);
+  return $towrite;
+}
+
+$fullpath = getcwd();
+session_start();
+ob_start();
+function sendPage() {
+ob_clean();
+if ($_SESSION["logon"] == 1 && $_SESSION["browser"] == get_browser(null, true) && $_SESSION["ip"] == $_SERVER["REMOTE_ADDR"]) {
+$totposts = scandir("posts", SCANDIR_SORT_DESCENDING);
+$dropdownOps = "";
+foreach ($totposts as &$pName) {
+  $title = explode("\n", file_get_contents("posts/".$pName))[0];
+  $currDD = "\n".'<option value="'.$pName.'">'.$title.'</option>';
+  $dropdownOps = $dropdownOps.$currDD;
+}
+$page = '<html>
+         <head>
+<link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet" type="text/css">
+<title>Blog Admin Panel</title>
+<style>
+input, textarea, button, select {
+  border: 1px solid black;
+  border-radius: 5px;
+}
+.postmaker {
+font-size: 3vmin; height:5vmin; width: 50vmin; padding-left: 2vmin;
+}
+.stylelabel {
+cursor: pointer;
+}
+.stylelabel:hover {
+color: #666666
+}
+* {
+font-family: "Fira mono", sans-serif;
+}
+#subbutton:hover, button:hover {
+background-color: #999999;
+cursor: pointer;
+}
+textarea {
+font-size: 20px;
+</style>
+         <script>
+function setSelectionRange(input, selectionStart, selectionEnd) {
+  if (input.setSelectionRange) {
+    input.focus();
+    input.setSelectionRange(selectionStart, selectionEnd);
+  } else if (input.createTextRange) {
+    var range = input.createTextRange();
+    range.collapse(true);
+    range.moveEnd("character", selectionEnd);
+    range.moveStart("character", selectionStart);
+    range.select();
+  }
+}
+function redirect() { window.location = "index.html"; }
+function setCaretToPos(input, pos) {
+  setSelectionRange(input, pos, pos);
+}
+         function addLines(element, e) {
+    var keynum;
+
+    if(window.event) { // IE                    
+      keynum = e.keyCode;
+    } else if(e.which){ // Netscape/Firefox/Opera                   
+      keynum = e.which;
+    }
+
+    if (String.fromCharCode(keynum) == "\r") {
+      element.value = element.value + "<br/>";
+   }
+  }
+  function bold() {
+  var elem = document.getElementById("post");
+  elem.value = elem.value + "<b></b>";
+  setCaretToPos(elem, elem.value.length-4);
+  }
+  function italic() {
+  var elem = document.getElementById("post");
+  elem.value = elem.value + "<em></em>";
+  setCaretToPos(elem, elem.value.length-5);
+  }
+function unli() {
+  var elem = document.getElementById("post");
+  elem.value = elem.value + "<u></u>";
+  setCaretToPos(elem, elem.value.length-4);
+  }
+function subscr() {
+  var elem = document.getElementById("post");
+  elem.value = elem.value + "<sub></sub>";
+  setCaretToPos(elem, elem.value.length-6);
+  }
+function supscr() {
+  var elem = document.getElementById("post");
+  elem.value = elem.value + "<sup></sup>";
+  setCaretToPos(elem, elem.value.length-6);
+  }
+function image() {
+  var name = prompt("Please enter image name:", "example.png");
+  var imgwidth = prompt("Please enter image width:", "500px");
+  var imgheight = prompt("Please enter image height:", "500px");
+
+  var elem = document.getElementById("post");
+  elem.value = elem.value + \'<img src="##cwd##/uploads/\'+name+\'" style="height: \'+imgheight+\'; width:\'+imgwidth+\'"/>\';
+  setCaretToPos(elem, elem.value.length);
+  }
+function video() {
+var name = prompt("Please enter video name:", "example.mp4");
+  var imgwidth = prompt("Please enter video width (px):", "500");
+  var imgheight = prompt("Please enter video height (px):", "500");
+  var elem = document.getElementById("post");
+  elem.value = elem.value + \'<video width="\'+imgwidth+\'" height="\'+imgheight+\'" controls><source src="##cwd##/uploads/\'+name+\'"></video>\';
+  setCaretToPos(elem, elem.value.length);
+
+}
+function remind() {
+var elem = document.getElementById("postDD");
+var post = elem.options[elem.selectedIndex].text;
+return confirm("Are you sure you want to delete: "+post+"?");
+}
+
+         </script>
+         </head>
+         <body>
+         <center> 
+         <br/><br/><h1>Make a post:</h1>
+         <form id="login" action="bg-admin.php" method="post">
+         <input type="text" name="title" placeholder="Title" class="postmaker"></input><br/><br/>
+<p>
+         <b class="stylelabel" onclick="bold()">Bold</b>
+         <em class="stylelabel" onclick="italic()">Italic</em>
+         <u class="stylelabel" onclick="unli()">Underline</u>
+         <sup class="stylelabel" onclick="supscr()">Superscript</sup>
+         <sub class="stylelabel" onclick="subscr()">Subscript</sub>
+</p>
+<p>
+         <span class="stylelabel" style="padding-right: 5vw;" onclick="image()">Add image</span>
+         <span class="stylelabel" onclick="video()">Add video</span>
+</p>
+         <textarea onkeypress="addLines(this, event)" id="post" name="chat" rows="17" cols="85"></textarea><br/><br/>
+         <input type="text" name="tags" placeholder="Tags (comma separated)" class="postmaker"></input><br/><br/>
+         <input type="submit" id="subbutton" class="postmaker" value="Post!"></input>
+         </form>
+         <br/><br/><h1>Upload a file:</h1>
+         <form enctype="multipart/form-data" action="bg-admin.php" method="POST">
+         <!-- MAX_FILE_SIZE must precede the file input field -->
+         <input type="hidden" name="MAX_FILE_SIZE" value="3000000000000000000000" />
+         <!-- Name of input element determines name in $_FILES array -->
+         <input style="font-size: 3vmin; height: 5vmin; width: 50vmin; cursor:pointer;" name="userfile" type="file" />
+         <input type="submit" value="Send File" id="subbutton" style="height: 4vmin; font-size: 2.5vmin; width: 17vmin;"/>
+         </form>
+         <br/><br/><h1>Delete a post:</h1>
+         <form action="bg-admin.php" method="POST">
+         <select name="post_delete" class="postmaker" id="postDD">
+         '.$dropdownOps.'
+         </select>
+         <input type="submit" value="Delete Post" onclick="return remind()" id="subbutton" style="height: 4vmin; font-size: 2.5vmin; width: 23vmin;"/>
+         </form>
+         <br/><br/> <button onclick="redirect()" class="postmaker">View blog</button>
+         </center>
+<br/><br/>
+         </body>
+         </html>';
+}
+else {
+$page = '<html>
+         <head>
+         <title>Blog log-in</title>
+         </head>
+         <body>
+         <form id="login" action="bg-admin.php" method="post">
+         <input type="text" name="username" placeholder="username"></input>
+         <input type="password" name="password" placeholder="password"></input>
+         <input type="submit"></input>
+         </form>
+         </body>
+         </html>';
+}
+echo $page;
+}
+sendPage();
+if ($_SESSION["logon"] == 1 && $_SESSION["browser"] == get_browser(null, true) && $_SESSION["ip"] == $_SERVER["REMOTE_ADDR"]) {
+$uploadfile = "uploads/".basename($_FILES['userfile']['name']);
+echo '<pre>';
+if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
+    echo "<center><h3 style='color:green'>File is valid, and was successfully uploaded.</h3></center>";
+}
+print "</pre>";
+$currtheme = fgets(fopen("themes/themesetup.ini", 'r'));
+  $currtheme = explode("\n", $currtheme)[0];
+  $file = file_get_contents("content.blg");
+  $header = file_get_contents("themes/".$currtheme."/header.blg")."\n";
+  $footer = file_get_contents("themes/".$currtheme."/footer.blg");
+
+if ($_POST["post_delete"] != "") {
+  unlink("posts/".$_POST["post_delete"]);
+  $posts = scandir("posts", SCANDIR_SORT_DESCENDING);
+  $contentTotal = "";
+  foreach ($posts as &$postName) {
+    $postToWrite = file_get_contents("posts/".$postName);
+    $exPo = explode("\n", $postToWrite);
+    $shiftPo = array_shift($exPo);
+    $postToWrite = implode("\n", $exPo);
+    $contentTotal = $contentTotal.$postToWrite;
+  }
+  file_put_contents("content.blg", $contentTotal);
+  file_put_contents("index.html", $header.$contentTotal.$footer);
+  sendPage();
+}
+if ($_POST["chat"] != "" && $_POST["title"] != "") {
+  $postID = time();
+  $tagsArr = explode(",", $_POST["tags"]);
+  $pDate = date("jS F, Y");
+  $pTitle = $_POST["title"];
+  $pContent = $_POST["chat"];
+  $listoftags = file_get_contents("taglist.csv");
+  $towrite = $pTitle."\n".$pDate."\n".$_POST["tags"]."\n".$pContent;
+  echo $towrite;
+  file_put_contents("posts/".$postID.".blg", $towrite);
+  if ($_POST["tags"] != "") {
+  foreach ($tagsArr as &$tag) {
+  if (file_exists("categories/".$tag)) {
+    $cat_header = file_get_contents("categories/".$tag."/header.blg");
+    $cat_footer = file_get_contents("categories/".$tag."/footer.blg");
+    $posts = explode(file_get_contents("\n", "categories/".$tag."/posts.blg"));
+    $contentTotal = "";
+    foreach ($posts as &$postName) {
+      if (file_get_contents("posts/".$postName) != false) {
+        $postToWrite = file_get_contents("posts/".$postName);
+        $exPo = explode("\n", $postToWrite);
+        $pTitleF = $exPo[0];
+        $pDateF = $exPo[1];
+        $tagsArrF = explode(",", $exPo[2]);
+        $pContentF = $exPo[3];
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $contentTotal = $contentTotal.$accPost;
+      }
+    }
+    file_put_contents("categories/".$tag."/index.html", $cat_header.$contentTotal.$cat_footer);
+  }
+  else {
+      $trymk = mkdir("categories/".$tag);
+      $fileheader = file_get_contents("tagsheader.blg");
+      $newheader = $header."<br/><h1>Posts tagged under: ".$tag."</h1>";
+      $newheader = str_replace('<td class="navbar-selected">', '<td class="navbar">', $newheader);
+      $newheader = str_replace('<td class="navbar"><a class="navbar-label" href="blogr/c', '<td class="navbar-selected"><a class="navbar-label" href="blogr/c', $newheader);
+      file_put_contents("categories/".$tag."/header.blg", $newheader);
+      file_put_contents("categories/".$tag."/footer.blg", $footer);
+      file_put_contents("categories/".$tag."/posts.blg", $postID.".blg\n");
+      $listoftags = $listoftags.','.$tags;
+      file_put_contents("categories/".$tag."/index.html", $newheader.makePost($pTitle, $pDate, $tagsArr, $pContent).$footer);
+
+      $tags = file_get_contents("categories/content.blg");
+      $tags = $tags."<li class='category-li'><a class='category-tag' href='##cwd##/categories/".$tag."'>".$tag."</a></li>";
+      $tag_header = $header."<br/><h1>Categories:</h1><br/><ul>";
+      file_put_contents("categories/index.html", $tag_header.$tags."</ul>".$footer);
+      file_put_contents("categories/content.blg", $tags);
+    }
+  }
+  file_put_contents("taglist.csv", $listoftags);
+  }
+  $posts = scandir("posts", SCANDIR_SORT_DESCENDING);
+  $contentTotal = "";
+  foreach ($posts as &$postName) {
+      if (file_get_contents("posts/".$postName) != false) {
+        $postToWrite = file_get_contents("posts/".$postName);
+        $exPo = explode("\n", $postToWrite);
+        $pTitleF = $exPo[0];
+        $pDateF = $exPo[1];
+        $tagsArrF = explode(",", $exPo[2]);
+        $pContentF = $exPo[3];
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $contentTotal = $contentTotal.$accPost;
+      }
+  }
+  file_put_contents("content.blg", $contentTotal);
+  file_put_contents("index.html", $header.$contentTotal.$footer);
+  $header = file_get_contents("xml-header.blg");
+  $footer = file_get_contents("xml-footer.blg");
+  $nospacedid = str_replace(" ", "%20", $_POST["title"]);
+  $RSSstring = '<item><title>'.$_POST["title"].'</title><link>http://##wsn##/demos/blogd#'.$nospacedid.'</link><guid isPermaLink="false">'.time().'</guid><pubDate>'.date("D, d M Y H:i:s O").'</pubDate><description>'.$_POST["title"].'</description></item>';
+  file_put_contents("xml-posts/".$postID.".blg", $_POST["title"]."\n".$RSSstring);
+  $posts = scandir("xml-posts", SCANDIR_SORT_DESCENDING);
+  $contentTotal = "";
+  foreach ($posts as &$postName) {
+   $postToWrite = file_get_contents("xml-posts/".$postName);
+    $exPo = explode("\n", $postToWrite);
+    $shiftPo = array_shift($exPo);
+    $postToWrite = implode("\n", $exPo);
+    $contentTotal = $contentTotal.$postToWrite;
+  }
+  file_put_contents("xml-content.blg", $contentTotal);
+  file_put_contents("rss.xml", $header.$contentTotal.$footer);
+}
+}
+
+else {
+$username = "SLX";
+$password = "$2y$10$5.vGm14Z8Iqs/Q14MgpItOEQcj7cKtjZjsSXUNK0X4Ur7xdL48LIK";
+if (password_verify($_POST["password"], $password) && $_POST["username"] == $username) {
+  $_SESSION["user"] = "SLX";
+  $_SESSION["browser"] = get_browser(null, true);
+  $_SESSION["ip"] = $_SERVER["REMOTE_ADDR"];
+  $_SESSION["logon"] = 1;
+}
+else {
+  echo "Incorrect username or password";
+}
+}
+?>
