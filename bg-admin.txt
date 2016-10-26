@@ -310,8 +310,8 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
 }
 
 else {
-$username = "SLX";
-$password = "$2y$10$5.vGm14Z8Iqs/Q14MgpItOEQcj7cKtjZjsSXUNK0X4Ur7xdL48LIK";
+$username = "DemoUser";
+$password = "$2y$10$P/TvGGodHK0RnNu4bTyx8Ovl6ui/SZBAtqLsR2IjNfHCRf4eSIl1y";
 if (password_verify($_POST["password"], $password) && $_POST["username"] == $username) {
   $_SESSION["user"] = "SLX";
   $_SESSION["browser"] = get_browser(null, true);
