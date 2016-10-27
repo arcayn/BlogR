@@ -2,6 +2,9 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -74,6 +77,15 @@ int main() {
   // load the basic theme rss page
 
   makefile("themes/basic/rsspage.blg", "rss-style.xsl", reps);
+
+  // make the empty dirs
+
+  struct stat info;
+
+  if (stat("posts", &info) != 0) {system("mkdir posts");}
+  if (stat("xml-posts", &info) != 0) {system("mkdir xml-posts");}
+  if (stat("categories", &info) != 0) {system("mkdir categories");}
+  if (stat("uploads", &info) != 0) {system("mkdir uploads");}
 
 return 0;
 }
