@@ -1,6 +1,6 @@
 <?php
 function makePost($title, $date, $tags, $content) {
-  $currtheme = fgets(fopen("themes/themesetup.ini", 'r'));
+  $currtheme = fgets(fopen("themes/themeconfig.ini", 'r'));
   $currtheme = explode("\n", $currtheme)[0];
   $tagM = '<p class="categories">';
   foreach ($tags as &$tag) {
@@ -12,6 +12,17 @@ function makePost($title, $date, $tags, $content) {
   $towrite = str_replace("%tags%", $tagM, $towrite);
   $towrite = str_replace("%date%", $date, $towrite);
   return $towrite;
+}
+
+// clone of the same function from blogsetup.cpp. But in PHP
+
+function makeFile($from, $to, $reps) {
+  $startFile = file_get_contents($from);
+  $oneFile = str_replace("%#wsn##", $reps[1], $startFile);
+  $twoFile = str_replace("%#cwd##", $reps[2], $oneFile);
+  $threeFile = str_replace("%#bgn##", $reps[3], $twoFile);
+  $endFile = str_replace("%#bgt##", $reps[4], $threeFile);
+  file_put_contents($to, $endFile);
 }
 
 $fullpath = getcwd();
@@ -27,6 +38,14 @@ foreach ($totposts as &$pName) {
   $currDD = "\n".'<option value="'.$pName.'">'.$title.'</option>';
   $dropdownOps = $dropdownOps.$currDD;
 }
+$totposts = glob("themes" . '/*' , GLOB_ONLYDIR);
+$dropdownOpsTwo = "";
+foreach ($totposts as &$pName) {
+  $pName = explode("/", $pName)[1];
+  $currDD = "\n".'<option value="'.$pName.'">'.$pName.'</option>';
+  $dropdownOpsTwo = $dropdownOpsTwo.$currDD;
+}
+
 $page = '<html>
          <head>
 <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet" type="text/css">
@@ -161,6 +180,7 @@ return confirm("Are you sure you want to delete: "+post+"?");
          <!-- MAX_FILE_SIZE must precede the file input field -->
          <input type="hidden" name="MAX_FILE_SIZE" value="3000000000000000000000" />
          <!-- Name of input element determines name in $_FILES array -->
+         <select name="filetype"><option value="file">Resource</option><option value="theme">Theme</option></select>
          <input style="font-size: 3vmin; height: 5vmin; width: 50vmin; cursor:pointer;" name="userfile" type="file" />
          <input type="submit" value="Send File" id="subbutton" style="height: 4vmin; font-size: 2.5vmin; width: 17vmin;"/>
          </form>
@@ -171,9 +191,16 @@ return confirm("Are you sure you want to delete: "+post+"?");
          </select>
          <input type="submit" value="Delete Post" onclick="return remind()" id="subbutton" style="height: 4vmin; font-size: 2.5vmin; width: 23vmin;"/>
          </form>
-         <br/><br/> <button onclick="redirect()" class="postmaker">View blog</button>
-         </center>
-<br/><br/>
+         <br/><br/><h1>Change Theme:</h1>
+         <form action="bg-admin.php" method="POST">
+         <select name="change_theme" class="postmaker" id="postDD">
+         '.$dropdownOpsTwo.'
+         </select>
+         <input type="submit" value="Change Theme" id="subbutton" style="height: 4vmin; font-size: 2.5vmin; width: 23vmin;"/>
+         </form>
+         <br/><br/>
+         <button class="postmaker" onclick="redirect()">View Blog</button>
+         <br/></center>
          </body>
          </html>';
 }
@@ -181,12 +208,41 @@ else {
 $page = '<html>
          <head>
          <title>Blog log-in</title>
+         <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet" type="text/css">
+<style>
+input, textarea, button, select {
+  border: 1px solid black;
+  border-radius: 5px;
+}
+.postmaker {
+font-size: 3vmin; height:5vmin; width: 50vmin; padding-left: 2vmin;
+}
+h1 {
+font-size: 10vmin; margin-top:21vh;
+}
+.stylelabel {
+cursor: pointer;
+}
+.stylelabel:hover {
+color: #666666
+}
+* {
+font-family: "Fira mono", sans-serif;
+}
+#subbutton:hover, button:hover {
+background-color: #999999;
+cursor: pointer;
+}
+</style>
+
          </head>
          <body>
+         <center>
+         <h1> Blogr </h1><br/><br/>
          <form id="login" action="bg-admin.php" method="post">
-         <input type="text" name="username" placeholder="username"></input>
-         <input type="password" name="password" placeholder="password"></input>
-         <input type="submit"></input>
+         <input type="text" name="username" placeholder="username" class="postmaker"></input><br/><br/>
+         <input type="password" name="password" placeholder="password" class="postmaker"></input><br/><br/>
+         <input type="submit" id="subbutton"></input>
          </form>
          </body>
          </html>';
@@ -195,13 +251,30 @@ echo $page;
 }
 sendPage();
 if ($_SESSION["logon"] == 1 && $_SESSION["browser"] == get_browser(null, true) && $_SESSION["ip"] == $_SERVER["REMOTE_ADDR"]) {
-$uploadfile = "uploads/".basename($_FILES['userfile']['name']);
-echo '<pre>';
-if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
-    echo "<center><h3 style='color:green'>File is valid, and was successfully uploaded.</h3></center>";
+if ($_POST["filetype"] == "theme") {
+  $uploadfile = "themes/".basename($_FILES['userfile']['name']);
+  $themename = basename($_FILES['userfile']['name'], ".zip");
+  echo '<pre>';
+  if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
+     $zip = new ZipArchive;
+     if ($zip->open($uploadfile) === TRUE) {
+       $zip->extractTo("themes/".$themename."/");
+       $zip->close();
+     }
+     unlink($uploadfile);
+     echo "<center><h3 style='color:green'>Theme successfully uploaded and extracted</h3></center>";
+  }
+  print "</pre>";
 }
-print "</pre>";
-$currtheme = fgets(fopen("themes/themesetup.ini", 'r'));
+else {
+  $uploadfile = "uploads/".basename($_FILES['userfile']['name']);
+  echo '<pre>'; 
+  if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
+      echo "<center><h3 style='color:green'>File is valid, and was successfully uploaded.</h3></center>";
+  }
+  print "</pre>";
+}
+$currtheme = fgets(fopen("themes/themeconfig.ini", 'r'));
   $currtheme = explode("\n", $currtheme)[0];
   $file = file_get_contents("content.blg");
   $header = file_get_contents("themes/".$currtheme."/header.blg")."\n";
@@ -222,15 +295,89 @@ if ($_POST["post_delete"] != "") {
   file_put_contents("index.html", $header.$contentTotal.$footer);
   sendPage();
 }
+if ($_POST["change_theme"] != "") {
+  $newTheme = $_POST["change_theme"];
+  $themeConfig = file_get_contents("themes/themeconfig.ini");
+  $confArr = explode("\n", $themeConfig);
+  $confArr[0] = $newTheme;
+  $themeConfig = implode("\n", $confArr);
+  file_put_contents("themes/themeconfig.ini", $themeConfig);
+  makeFile("themes/".$newTheme."/header.txt", "themes/".$newTheme."/header.blg", $confArr);
+  makeFile("themes/".$newTheme."/footer.txt", "themes/".$newTheme."/footer.blg", $confArr);
+  makeFile("themes/".$newTheme."/newposthtml.txt", "themes/".$newTheme."/newposthtml.blg", $confArr);
+  makeFile("themes/".$newTheme."/rsspage.blg", "rss-style.xsl", $confArr);
+  $header = file_get_contents("themes/".$newTheme."/header.blg");
+  $footer = file_get_contents("themes/".$newTheme."/footer.blg");
+  
+  $posts = scandir("posts", SCANDIR_SORT_DESCENDING);
+  $contentTotal = "";
+  foreach ($posts as &$postName) {
+      if (file_get_contents("posts/".$postName) != false) {
+        $postToWrite = file_get_contents("posts/".$postName);
+        $exPo = explode("\n", $postToWrite);
+        $pTitleF = $exPo[0];
+        $pDateF = $exPo[1];
+        $tagsArrF = explode(",", $exPo[2]);
+        $pContentF = $exPo[3];
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $contentTotal = $contentTotal.$accPost;
+      }
+  }
+  file_put_contents("index.html", $header.$contentTotal.$footer);  
+
+  //categories
+
+  $tags = file_get_contents("categories/content.blg");
+  $tag_header = $header."<br/><h1>Categories:</h1><br/><ul>";
+  $thingToWrite = $tag_header.$tags."</ul>".$footer;
+  file_put_contents("categories/index.html", $thingToWrite);
+
+  //each category
+   
+   $tagsArr = glob("categories" . '/*' , GLOB_ONLYDIR);
+   foreach ($tagsArr as &$path) {
+     $path = explode("/", $path)[1];
+   }
+   foreach ($tagsArr as &$tag) {
+    if (file_exists("categories/".$tag)) {
+    $cat_header = $header."<br/><h1>Posts tagged under: ".$tag."</h1>";;
+    $cat_footer = $footer;
+    $posts = explode("\n", file_get_contents("categories/".$tag."/posts.blg"));
+    $contentTotal = "";
+    foreach ($posts as &$postName) {
+      if (file_get_contents("posts/".$postName) != false) {
+        $postToWrite = file_get_contents("posts/".$postName);
+        $exPo = explode("\n", $postToWrite);
+        $pTitleF = $exPo[0];
+        $pDateF = $exPo[1];
+        $tagsArrF = explode(",", $exPo[2]);
+        $pContentF = $exPo[3];
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $contentTotal = $contentTotal.$accPost;
+      }
+    }
+    file_put_contents("categories/".$tag."/header.blg", $cat_header);
+    file_put_contents("categories/".$tag."/footer.blg", $cat_footer);
+    file_put_contents("categories/".$tag."/index.html", $cat_header.$contentTotal.$cat_footer);
+  }
+  }
+
+
+  echo "<center><h3 style='color:green'>Theme changed to: ".$newTheme." successfully</h3></center>";
+}
 if ($_POST["chat"] != "" && $_POST["title"] != "") {
-  $postID = time();
+  if ($_POST["pid"] != "") {
+    $postID = $_POST["pid"];
+  }
+  else {
+    $postID = time();
+  }
   $tagsArr = explode(",", $_POST["tags"]);
   $pDate = date("jS F, Y");
   $pTitle = $_POST["title"];
   $pContent = $_POST["chat"];
   $listoftags = file_get_contents("taglist.csv");
   $towrite = $pTitle."\n".$pDate."\n".$_POST["tags"]."\n".$pContent;
-  echo $towrite;
   file_put_contents("posts/".$postID.".blg", $towrite);
   if ($_POST["tags"] != "") {
   foreach ($tagsArr as &$tag) {
@@ -270,7 +417,8 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
       $tag_header = $header."<br/><h1>Categories:</h1><br/><ul>";
       file_put_contents("categories/index.html", $tag_header.$tags."</ul>".$footer);
       file_put_contents("categories/content.blg", $tags);
-    }
+  }
+  $listoftags = $listoftags.','.$tag;
   }
   file_put_contents("taglist.csv", $listoftags);
   }
@@ -293,7 +441,7 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
   $header = file_get_contents("xml-header.blg");
   $footer = file_get_contents("xml-footer.blg");
   $nospacedid = str_replace(" ", "%20", $_POST["title"]);
-  $RSSstring = '<item><title>'.$_POST["title"].'</title><link>http://##wsn##/demos/blogd#'.$nospacedid.'</link><guid isPermaLink="false">'.time().'</guid><pubDate>'.date("D, d M Y H:i:s O").'</pubDate><description>'.$_POST["title"].'</description></item>';
+  $RSSstring = '<item><title>'.$_POST["title"].'</title><link>http://##wsn####cwd###'.$nospacedid.'</link><guid isPermaLink="false">'.time().'</guid><pubDate>'.date("D, d M Y H:i:s O").'</pubDate><description>'.$_POST["title"].'</description></item>';
   file_put_contents("xml-posts/".$postID.".blg", $_POST["title"]."\n".$RSSstring);
   $posts = scandir("xml-posts", SCANDIR_SORT_DESCENDING);
   $contentTotal = "";
@@ -311,7 +459,7 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
 
 else {
 $username = "DemoUser";
-$password = "$2y$10$P/TvGGodHK0RnNu4bTyx8Ovl6ui/SZBAtqLsR2IjNfHCRf4eSIl1y";
+$password = password_hash("Password", PASSWORD_DEFAULT);
 if (password_verify($_POST["password"], $password) && $_POST["username"] == $username) {
   $_SESSION["user"] = $username;
   $_SESSION["browser"] = get_browser(null, true);

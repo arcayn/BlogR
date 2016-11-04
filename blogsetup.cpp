@@ -1,3 +1,5 @@
+// import them standard shizzles
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -6,7 +8,11 @@
 #include <sys/stat.h>
 #include <cstdlib>
 
+// because I'm a scrub
+
 using namespace std;
+
+// function for replacing shizzle in shiznit
 
 void replaceAll(string& str, const string& from, const string& to) {
     if(from.empty())
@@ -17,6 +23,8 @@ void replaceAll(string& str, const string& from, const string& to) {
         start_pos += to.length();
     }
 }
+
+// function for putting shizzle in shiznit
 
 void makefile(string start, string dest, vector<string> reps) {
   ifstream fin;
@@ -29,6 +37,10 @@ void makefile(string start, string dest, vector<string> reps) {
    replaceAll(line, "##wsn##", reps[1]);
    replaceAll(line, "##bgt##", reps[2]);
    replaceAll(line, "##bgn##", reps[3]);
+   replaceAll(line, "%#cwd##", "##cwd##");
+   replaceAll(line, "%#wsn##", "##wsn##");
+   replaceAll(line, "%#bgt##", "##bgt##");
+   replaceAll(line, "%#bgn##", "##bgn##");
    fout << line << endl;
   }
 }
@@ -37,14 +49,14 @@ int main() {
 
   // get the shizzle
 
-  cout << endl << "BlogR Setup" << endl << endl;
+  cout << endl << "BlogR Setup" << endl << "PLEASE NOTE: No changes will be made to any files external to BlogR" << endl << endl;
   string webServer;
   string currDir;
   string bgName;
   string bgTitle;
   cout << "Enter the name of your web server, for example, 'example.com': ";
   cin >> webServer;
-  cout << "Enter the name of your CWD, omitting the path to your webdocs (type '/' for the web server root): ";
+  cout << "Enter the name of your CWD, omitting the path to /var/www (type '/' for the web server root): ";
   cin >> currDir;
   cout << "Enter the Blog Name: ";
   cin.clear();
@@ -87,5 +99,12 @@ int main() {
   if (stat("categories", &info) != 0) {system("mkdir categories");}
   if (stat("uploads", &info) != 0) {system("mkdir uploads");}
 
-return 0;
+  // U DID IT
+
+  cout << "Done!" << endl << endl;
+
+  // bc main
+
+  return 0;
+
 }
