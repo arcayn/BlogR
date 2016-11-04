@@ -6,14 +6,9 @@ A blogging software that is currently in (limited) beta testing. To setup, you m
 ```sh
 ./blogsetup
 ```
-<<<<<<< HEAD
 It currently lacks the promised plugin API and post Archiving feature. Everything else up-n-running however.
-=======
 
 This will run the setup program, creating everything required to begin blogging!
-
-It currently lacks the promised plugin API and post Archiving feature, and a method of installing other themes. Everything else up-n-running however.
->>>>>>> origin/master
 
 Until I can get a method of hashing the user passwords working, the credentials for the admin panel are:
 Username: DemoUser, Password: Password
