@@ -6,9 +6,17 @@ A blogging software that is currently in (limited) beta testing. To setup, you m
 ```sh
 ./blogsetup
 ```
-It currently lacks the promised plugin API and post Archiving feature. Everything else up-n-running however.
 
 This will run the setup program, creating everything required to begin blogging!
 
-Until I can get a method of hashing the user passwords working, the credentials for the admin panel are:
-Username: DemoUser, Password: Password
+Some users are experiencing problems with not having permission to run the blogsetup program, this is precisely why we include the source
+to fix this, you must recompile the source. Run these two commands to run the setup program:
+
+```sh
+g++ blogsetup.cpp
+./a.out
+```
+
+This will run the setup program exactly as it should
+
+It currently lacks the promised plugin API. Everything else up-n-running however.
