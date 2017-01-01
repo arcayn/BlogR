@@ -1,0 +1,24 @@
+<?php
+$cwd = getcwd();
+$conts = explode("\n", file_get_contents("http://##wsn####cwd##/posts/".$_GET["post"].".blg"));
+$date = $conts[1];
+$title = $conts[0];
+$tags = $conts[2];
+$content = $conts[3];
+$pid = $_GET["post"];
+  $currtheme = explode("\n", file_get_contents("http://##wsn####cwd##/themes/themeconfig.ini"))[0];
+  $tagM = '<p class="categories">';
+  foreach ($tags as &$tag) {
+    $tagM = $tagM.'<a href="http://##wsn####cwd##/categories/'.$tag.'">'.$tag.'</a> ';
+  }
+  $newposthtml = fgets(fopen("http://##wsn####cwd##/themes/".$currtheme."/newposthtml.blg", 'r'));
+  $towrite = str_replace("%title%", $title, $newposthtml);
+  $towrite = str_replace("%content%", $content, $towrite);
+  $towrite = str_replace("%tags%", $tagM, $towrite);
+  $towrite = str_replace("%date%", $date, $towrite);
+  $towrite = str_replace("%pid%", $pid, $towrite);
+$body = $towrite;
+$header = file_get_contents("http://##wsn####cwd##/themes/".$currtheme."/header.blg");
+$footer = file_get_contents("http://##wsn####cwd##/themes/".$currtheme."/footer.blg");
+echo $header.$body.$footer;
+?>

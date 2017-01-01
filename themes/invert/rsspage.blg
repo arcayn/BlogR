@@ -7,12 +7,15 @@ color: #668b9f;
 a {
 text-decoration: none;
 }
+* {
+color: white;
+}
 </style>
 <link href='https://fonts.googleapis.com/css?family=Fira+Mono' rel='stylesheet' type='text/css'/>
-<body style="font-family:'Fira Mono';font-size:12pt;background-color:#FFF">
+<body style="font-family:'Fira Mono';font-size:12pt;background-color:#000">
 <center>
 
-<h1 style="width: 10vw; font-size:10vh; margin-top:30vh; border-bottom: 1vh solid black">RSS</h1>
+<h1 style="width: 10vw; font-size:10vh; margin-top:30vh; border-bottom: 1vh solid white">RSS</h1>
 <h1 style="padding:0px 15vw 0px 15vw">This is an RSS feed page. To view the RSS feed of this blog, download a feed reader or use an RSS feedbox. Simply point the feed readerto this page, at <u>##wsn####cwd##/rss</u></h1>
 <a href="https://www.##wsn####cwd##/index.html">Home</a>
 </center>

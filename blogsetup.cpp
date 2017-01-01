@@ -37,6 +37,8 @@ void makefile(string start, string dest, vector<string> reps) {
    replaceAll(line, "##wsn##", reps[1]);
    replaceAll(line, "##bgt##", reps[2]);
    replaceAll(line, "##bgn##", reps[3]);
+   replaceAll(line, "##pwd##", reps[4]);
+   replaceAll(line, "##usr##", reps[5]);
    replaceAll(line, "%#cwd##", "##cwd##");
    replaceAll(line, "%#wsn##", "##wsn##");
    replaceAll(line, "%#bgt##", "##bgt##");
@@ -54,6 +56,8 @@ int main() {
   string currDir;
   string bgName;
   string bgTitle;
+  string usrname;
+  string pwrd;
   cout << "Enter the name of your web server, for example, 'example.com': ";
   cin >> webServer;
   cout << "Enter the name of your CWD, omitting the path to /var/www (type '/' for the web server root): ";
@@ -64,9 +68,13 @@ int main() {
   getline(cin, bgName);
   cout << "Enter the Blog Title: ";
   getline(cin, bgTitle);
+  cout << "Enter the admin panel username: ";
+  getline(cin, usrname);
+  cout << "Enter the admin panel password: ";
+  getline(cin, pwrd);
   cout << endl << "Setting up your blog..." << endl;
   vector<string> reps;
-  reps.push_back(currDir); reps.push_back(webServer); reps.push_back(bgTitle); reps.push_back(bgName);
+  reps.push_back(currDir); reps.push_back(webServer); reps.push_back(bgTitle); reps.push_back(bgName); reps.push_back(pwrd); reps.push_back(usrname);
 
   // put the shizzle in the admin panel
 
@@ -78,13 +86,18 @@ int main() {
   tconf.open("themes/themeconfig.ini");
   tconf << "basic" << endl << webServer << endl << currDir << endl << bgName << endl << bgTitle;
 
-  // put the shizzle in the rss header
+  // put the shizzle in the rss stuff
 
   makefile("xml-header.txt", "xml-header.blg", reps);
+  makefile("xml-footer.txt", "xml-footer.blg", reps);
 
-  // put the shizzle in the basic theme
+  // put the shizzle in the basic theme (only header has any variable stuff here)
 
   makefile("themes/basic/header.txt", "themes/basic/header.blg", reps);
+
+  // put the shizzle in the post display script
+
+  makefile("archive/post-display.txt", "archive/post-display.php", reps);
 
   // load the basic theme rss page
 

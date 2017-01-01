@@ -1,5 +1,8 @@
 <?php
-function makePost($title, $date, $tags, $content) {
+
+// proccesses post data into post HTML
+
+function makePost($title, $date, $tags, $content, $pid) {
   $currtheme = fgets(fopen("themes/themeconfig.ini", 'r'));
   $currtheme = explode("\n", $currtheme)[0];
   $tagM = '<p class="categories">';
@@ -11,6 +14,7 @@ function makePost($title, $date, $tags, $content) {
   $towrite = str_replace("%content%", $content, $towrite);
   $towrite = str_replace("%tags%", $tagM, $towrite);
   $towrite = str_replace("%date%", $date, $towrite);
+  $towrite = str_replace("%pid%", $pid, $towrite);
   return $towrite;
 }
 
@@ -201,6 +205,9 @@ return confirm("Are you sure you want to delete: "+post+"?");
          <br/><br/>
          <button class="postmaker" onclick="redirect()">View Blog</button>
          <br/></center>
+         <div class="uploadbox">
+           
+         </div>
          </body>
          </html>';
 }
@@ -302,13 +309,13 @@ if ($_POST["change_theme"] != "") {
   $confArr[0] = $newTheme;
   $themeConfig = implode("\n", $confArr);
   file_put_contents("themes/themeconfig.ini", $themeConfig);
-  makeFile("themes/".$newTheme."/header.txt", "themes/".$newTheme."/header.blg", $confArr);
+ makeFile("themes/".$newTheme."/header.txt", "themes/".$newTheme."/header.blg", $confArr);
   makeFile("themes/".$newTheme."/footer.txt", "themes/".$newTheme."/footer.blg", $confArr);
+  makeFile("themes/".$newTheme."/archive.txt", "themes/".$newTheme."/archive.blg", $confArr);
   makeFile("themes/".$newTheme."/newposthtml.txt", "themes/".$newTheme."/newposthtml.blg", $confArr);
   makeFile("themes/".$newTheme."/rsspage.blg", "rss-style.xsl", $confArr);
   $header = file_get_contents("themes/".$newTheme."/header.blg");
   $footer = file_get_contents("themes/".$newTheme."/footer.blg");
-  
   $posts = scandir("posts", SCANDIR_SORT_DESCENDING);
   $contentTotal = "";
   foreach ($posts as &$postName) {
@@ -319,12 +326,11 @@ if ($_POST["change_theme"] != "") {
         $pDateF = $exPo[1];
         $tagsArrF = explode(",", $exPo[2]);
         $pContentF = $exPo[3];
-        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF, $permID);
         $contentTotal = $contentTotal.$accPost;
       }
   }
-  file_put_contents("index.html", $header.$contentTotal.$footer);  
-
+  file_put_contents("index.html", $header.$contentTotal.$footer);
   //categories
 
   $tags = file_get_contents("categories/content.blg");
@@ -333,7 +339,7 @@ if ($_POST["change_theme"] != "") {
   file_put_contents("categories/index.html", $thingToWrite);
 
   //each category
-   
+
    $tagsArr = glob("categories" . '/*' , GLOB_ONLYDIR);
    foreach ($tagsArr as &$path) {
      $path = explode("/", $path)[1];
@@ -352,7 +358,7 @@ if ($_POST["change_theme"] != "") {
         $pDateF = $exPo[1];
         $tagsArrF = explode(",", $exPo[2]);
         $pContentF = $exPo[3];
-        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF, explode(".", $postName)[0]);
         $contentTotal = $contentTotal.$accPost;
       }
     }
@@ -361,6 +367,63 @@ if ($_POST["change_theme"] != "") {
     file_put_contents("categories/".$tag."/index.html", $cat_header.$contentTotal.$cat_footer);
   }
   }
+  //archive
+  $posts = scandir("posts");
+  $foo = array_shift($posts);$foo = array_shift($posts);
+  $years = array();
+  $titles = array();
+  foreach ($posts as &$postName) {
+    $postData = file_get_contents("posts/".$postName);
+    $postDate = explode("\n", $postData)[1];
+    $postYear = explode(" ", $postDate)[2];
+    $postMonth = rtrim(explode(" ", $postDate)[1], ",");
+    $postTitle = explode("\n", $postData)[0];
+    $postID = explode(".", $postName)[0];
+    if (isset($years[$postYear])) {
+      if (isset($years[$postYear][$postMonth])) {
+        $foo = array_push($years[$postYear][$postMonth], $postID);
+      }
+      else {
+        $years[$postYear][$postMonth] = array($postID);
+      }
+    }
+    else {
+      $years[$postYear] = array(
+                                $postMonth => array(
+                                                    $postID
+                                                   )
+                               );
+    }
+    $titles[$postID] = $postTitle;
+
+  }
+$arrayDefs = "years = {";
+$yearKeys = array_keys($years);
+foreach ($yearKeys as &$currYear) {
+  $arrayDefs = $arrayDefs.$currYear.":{";
+  $monthKeys = array_keys($years[$currYear]);
+  foreach ($monthKeys as &$currMonth) {
+    $arrayDefs = $arrayDefs.'"'.$currMonth.'":[';
+    foreach ($years[$currYear][$currMonth] as &$currID) {
+      $arrayDefs = $arrayDefs.$currID.",";
+    }
+    $arrayDefs = rtrim($arrayDefs, ",");
+    $arrayDefs = $arrayDefs."],";
+  }
+  $arrayDefs = $arrayDefs."},";
+}
+$arrayDefs = $arrayDefs."};\ntitles = {";
+$postKeys = array_keys($titles);
+foreach ($postKeys as &$id) {
+  $arrayDefs = $arrayDefs.$id.":";
+  $arrayDefs = $arrayDefs.'"'.$titles[$id].'",';
+}
+$arrayDefs = $arrayDefs."};\n\n";
+$oldFile = file_get_contents("themes/".$newTheme."/archive.blg");
+$newFile = str_replace("%%arraydefs%%", $arrayDefs, $oldFile);
+$header = file_get_contents("themes/".$newTheme."/header.blg")."\n";
+$footer = "\n".file_get_contents("themes/".$newTheme."/footer.blg");
+var_dump(file_put_contents("archive/index.html", $header."<br/><h1>Archive:</h1><br/>".$newFile.$footer));
 
 
   echo "<center><h3 style='color:green'>Theme changed to: ".$newTheme." successfully</h3></center>";
@@ -372,6 +435,7 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
   else {
     $postID = time();
   }
+  $permID = $postID;
   $tagsArr = explode(",", $_POST["tags"]);
   $pDate = date("jS F, Y");
   $pTitle = $_POST["title"];
@@ -394,7 +458,7 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
         $pDateF = $exPo[1];
         $tagsArrF = explode(",", $exPo[2]);
         $pContentF = $exPo[3];
-        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF, $permID);
         $contentTotal = $contentTotal.$accPost;
       }
     }
@@ -410,7 +474,7 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
       file_put_contents("categories/".$tag."/footer.blg", $footer);
       file_put_contents("categories/".$tag."/posts.blg", $postID.".blg\n");
       $listoftags = $listoftags.','.$tags;
-      file_put_contents("categories/".$tag."/index.html", $newheader.makePost($pTitle, $pDate, $tagsArr, $pContent).$footer);
+      file_put_contents("categories/".$tag."/index.html", $newheader.makePost($pTitle, $pDate, $tagsArr, $pContent, $permID).$footer);
 
       $tags = file_get_contents("categories/content.blg");
       $tags = $tags."<li class='category-li'><a class='category-tag' href='##cwd##/categories/".$tag."'>".$tag."</a></li>";
@@ -432,16 +496,19 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
         $pDateF = $exPo[1];
         $tagsArrF = explode(",", $exPo[2]);
         $pContentF = $exPo[3];
-        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF);
+        $accPost = makePost($pTitleF, $pDateF, $tagsArrF, $pContentF, $permID);
         $contentTotal = $contentTotal.$accPost;
       }
   }
   file_put_contents("content.blg", $contentTotal);
+
+  // RSS
+
   file_put_contents("index.html", $header.$contentTotal.$footer);
   $header = file_get_contents("xml-header.blg");
   $footer = file_get_contents("xml-footer.blg");
   $nospacedid = str_replace(" ", "%20", $_POST["title"]);
-  $RSSstring = '<item><title>'.$_POST["title"].'</title><link>http://##wsn####cwd###'.$nospacedid.'</link><guid isPermaLink="false">'.time().'</guid><pubDate>'.date("D, d M Y H:i:s O").'</pubDate><description>'.$_POST["title"].'</description></item>';
+  $RSSstring = '<item><title>'.$_POST["title"].'</title><link>http://##wsn##/tests/blogr#'.$permID.'</link><guid isPermaLink="false">'.time().'</guid><pubDate>'.date("D, d M Y H:i:s O").'</pubDate><description>'.$_POST["title"].'</description></item>';
   file_put_contents("xml-posts/".$postID.".blg", $_POST["title"]."\n".$RSSstring);
   $posts = scandir("xml-posts", SCANDIR_SORT_DESCENDING);
   $contentTotal = "";
@@ -454,12 +521,75 @@ if ($_POST["chat"] != "" && $_POST["title"] != "") {
   }
   file_put_contents("xml-content.blg", $contentTotal);
   file_put_contents("rss.xml", $header.$contentTotal.$footer);
+
+  // END RSS
+
 }
+//archive
+  $posts = scandir("posts");
+  $foo = array_shift($posts);$foo = array_shift($posts);
+  $years = array();
+  $titles = array();
+  foreach ($posts as &$postName) {
+    $postData = file_get_contents("posts/".$postName);
+    $postDate = explode("\n", $postData)[1];
+    $postYear = explode(" ", $postDate)[2];
+    $postMonth = rtrim(explode(" ", $postDate)[1], ",");
+    $postTitle = explode("\n", $postData)[0];
+    $postID = explode(".", $postName)[0];
+    if (isset($years[$postYear])) {
+      if (isset($years[$postYear][$postMonth])) {
+        $foo = array_push($years[$postYear][$postMonth], $postID);
+      }
+      else {
+        $years[$postYear][$postMonth] = array($postID);
+      }
+    }
+    else {
+      $years[$postYear] = array(
+                                $postMonth => array(
+                                                    $postID
+                                                   )
+                               );
+    }
+    $titles[$postID] = $postTitle;
+    
+  }
+$arrayDefs = "years = {";
+$yearKeys = array_keys($years);
+foreach ($yearKeys as &$currYear) {
+  $arrayDefs = $arrayDefs.$currYear.":{";
+  $monthKeys = array_keys($years[$currYear]);
+  foreach ($monthKeys as &$currMonth) {
+    $arrayDefs = $arrayDefs.'"'.$currMonth.'":[';
+    foreach ($years[$currYear][$currMonth] as &$currID) {
+      $arrayDefs = $arrayDefs.$currID.",";
+    }
+    $arrayDefs = rtrim($arrayDefs, ",");
+    $arrayDefs = $arrayDefs."],";
+  }
+  $arrayDefs = $arrayDefs."},";
+}
+$arrayDefs = $arrayDefs."};\ntitles = {";
+$postKeys = array_keys($titles);
+foreach ($postKeys as &$id) {
+  $arrayDefs = $arrayDefs.$id.":";
+  $arrayDefs = $arrayDefs.'"'.$titles[$id].'",';
+}
+  $currtheme = fgets(fopen("themes/themeconfig.ini", 'r'));
+  $currtheme = explode("\n", $currtheme)[0];
+$arrayDefs = $arrayDefs."};\n\n";
+$oldFile = file_get_contents("themes/".$currtheme."/archive.blg");
+$newFile = str_replace("%%arraydefs%%", $arrayDefs, $oldFile);
+$header = file_get_contents("themes/".$currtheme."/header.blg")."\n";
+$footer = "\n".file_get_contents("themes/".$currtheme."/footer.blg");
+file_put_contents("archive/index.html", $header."<br/><h1>Archive:</h1><br/>".$newFile.$footer);
+
 }
 
 else {
-$username = "DemoUser";
-$password = password_hash("Password", PASSWORD_DEFAULT);
+$username = "##usr##";
+$password = password_hash("##pwd##", PASSWORD_DEFAULT);
 if (password_verify($_POST["password"], $password) && $_POST["username"] == $username) {
   $_SESSION["user"] = $username;
   $_SESSION["browser"] = get_browser(null, true);

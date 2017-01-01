@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>The Blog</title>
+    <title>Nop</title>
 <link href='https://fonts.googleapis.com/css?family=Fira+Mono' rel='stylesheet' type='text/css'>
 <style>
 * {
 font-family:'Fira Mono';
+color: white;
+}
+body {
+background-color: black;
 }
 .side {
 color: grey;
@@ -30,7 +34,7 @@ color: #668b9f;
 width: 5%;
 }
 .navbar {
-width: 5%;
+width:5%;
 }
 .navbar:hover {
 color: #91acba;
@@ -71,6 +75,9 @@ text-decoration: underline;
 .category-li {
 font-size: 3vmin;
 }
+.navbar-label {
+color:white;
+}
 </style>
 <script>
 
@@ -78,6 +85,6 @@ font-size: 3vmin;
 </head>
 <body>
 <div style="border-bottom-style: solid"><table style="width:90%"><tr><td style="vertical-align: bottom"><h1 style="font-size: 5vh;">The Blog</h1></td><td style="padding-left: 50px; vertical-align: bottom; color: grey"><h3><em>code</em></h3></td>
-<td class="navbar-selected"><a class="navbar-label" href="/tests/blogr">Home</a></td><td class="navbar" style="padding-right:1vw"><a class="navbar-label" href="/tests/blogr/categories/">Categories</a></td><td class="navbar"><a class="navbar-label" href="/tests/blogr/archive/">Archive</a></td><td class="navbar"><center><a class="navbar-label" href="/tests/blogr/rss">RSS</a></center></td>
+<td class="navbar-selected"><a class="navbar-label" href="/tests/blogr">Home</a></td><td class="navbar"><a class="navbar-label" href="/tests/blogr/categories/">Categories</a></td><td class="navbar"><a class="navbar-label" href="/tests/blogr/archive/">Archive</a></td><td class="navbar"><center><a class="navbar-label" href="/tests/blogr/rss">RSS</a></center></td>
 </tr></table></div>
 

@@ -1,0 +1,40 @@
+<table>
+<td style="width:33vw; vertical-align: top;">
+<ul id="years"></ul>
+</td>
+<td style="width:33vw; vertical-align: top;">
+<ul id="months"></ul>
+</td>
+<td style="width:33vw; vertical-align: top;">
+<ul id="posts"></ul>
+</td>
+
+<script>
+function selectYear(year) {
+  var monthsList = Object.keys(years[year]);
+  document.getElementById("months").innerHTML = "";
+  document.getElementById("posts").innerHTML = "";
+  for (var i = 0; i < monthsList.length; i++) {
+    document.getElementById("months").innerHTML += '<li onclick="selectMonth('+year+',\''+monthsList[i]+'\')">'+monthsList[i]+"</li>";
+  } 
+  
+}
+
+function selectMonth(year,month) {
+  var postsList = years[year][month];
+  document.getElementById("posts").innerHTML = "";
+  for (var i = 0; i < postsList.length; i++) {
+    document.getElementById("posts").innerHTML += "<li><a href='postdisplay.php?post="+postsList[i]+"'>"+titles[postsList[i]]+"</a></li>";
+  } 
+    
+}
+ 
+%%arraydefs%%
+
+var yearsList = Object.keys(years);
+
+for (var i = 0; i < yearsList.length; i++) {
+  document.getElementById("years").innerHTML += "<li onclick='selectYear("+yearsList[i]+")'>"+yearsList[i]+"</li>";
+} 
+
+</script>
